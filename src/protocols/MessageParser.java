@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class MessageParser {
@@ -23,7 +24,7 @@ public class MessageParser {
 		StringBuilder builder = new StringBuilder();
 		
 		for(Byte b : bytes) {
-			builder.append(Character.toChars(b)[0]);
+			builder.append(Character.toChars(b));
 		}
 
 		String message = builder.toString();
@@ -50,21 +51,13 @@ public class MessageParser {
 			HTTPAdapter httpMessage = new HTTPAdapter(message);
 
 			
-			System.out.println(httpMessage.toString());
+//			System.out.println(httpMessage.toString());
 			
 			
 			try {
 				DataOutputStream out = new DataOutputStream(connection.getOutputStream());
 				
-				String responseMessage = 
-						"<html>\r\n" + 
-						"   <head>\r\n" + 
-						"      <title>HelloSite</title>\r\n" + 
-						"   </head>\r\n" + 
-						"   <body>\r\n" + 
-						"      Hello world!\r\n" + 
-						"   </body>\r\n" + 
-						"</html>";
+				String responseMessage = HTTPMessageProcessor.getResponse(httpMessage);
 				
 				
 				String response = 
@@ -87,7 +80,7 @@ public class MessageParser {
 				
 				System.out.println("Responded!");
 				
-			} catch (IOException e) {
+			} catch (IOException | SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

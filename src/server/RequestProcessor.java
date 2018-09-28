@@ -72,7 +72,6 @@ public class RequestProcessor extends Thread{
 	}
 	
 	public void run() {
-		int waitCounter = 0;
 		
 		try {
 			DataInputStream input = new DataInputStream(socket.getInputStream());
@@ -82,47 +81,7 @@ public class RequestProcessor extends Thread{
 			}
 			
 			new MessageParser().parseMessage(input, socket); 
-			
-			//#region
-			
-//			for(int i = 0; i < 50;i++)
-//			{
-//				try {
-//					if(input.available() > 0) {
-//						data.add((int) input.readByte());
-//						//System.out.print(Character.toChars(data.get(i)));
-//						waitCounter = 0;
-//					}
-//					else {
-//						Thread.currentThread().join(1);
-//						waitCounter++;
-//						if(waitCounter >= timeout) {
-//							break;
-//						}
-//					}
-//					
-//				}
-//				catch(Exception e) {
-//					break;
-//				}
-//			}
-//			
-//			try {
-//				Thread.currentThread().join(100);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//			
-//			//System.out.println("HTTP check");
-//			
-//			System.out.println(isHttp(data));
-//			if(isHttp(data)) {
-//				httpInput(data, input, socket);
-//			}
-//			
-			//#endregion
-			
+
 			input.close();
 		}
 		catch(IOException e) {
