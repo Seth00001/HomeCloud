@@ -12,53 +12,66 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import dbEngine.DataBaseWrapper;
+import server.RequestBalancer;
 
 public class HTTPMessageProcessor {
 	
 	private static DataBaseWrapper DBManager;
 	
 	public static String getResponse(HTTPAdapter args) throws SQLException {
-		if(DBManager == null) {
-			DBManager = new DataBaseWrapper("jdbc:sqlite:D:\\Hosted_Databases\\SQLiteDB.db");
-		}
 		
-		System.out.println("URL: " + args.URL);
-		
-		String DBRequest = String.format("SELECT * FROM HTTPOperationRegistry WHERE URL = '%s'", args.URL);
-		ResultSet operationSet = DBManager.ExecuteQuery(DBRequest);
-		
-
 		String response = "";
-		String operation = "";
-		if(operationSet.next()) {
-			operation = operationSet.getString("OperationKey");
+		if(RequestBalancer.webpages.containsKey(args.URL)) {
+			response = ReturnPage(RequestBalancer.webpages.get(args.URL));
+		}
+		else {
+			if(DBManager == null) {
+				DBManager = new DataBaseWrapper("jdbc:sqlite:Data//sysdatabase.db");
+			}
+			
+			String DBRequest = String.format("SELECT *\r\n" + 
+					" FROM ListEndpoints le\r\n" + 
+					"	LEFT JOIN ListWebPages lw ON (le.id = lw.endpointId)\r\n" + 
+					" WHERE le.endpointTypeId = 1\r\n" + 
+					"	AND lw.filePath IS NOT NULL\r\n" + 
+					"	AND URL = '%s'", args.URL);
+			ResultSet operationSet = DBManager.ExecuteQuery(DBRequest);
+			
+			String operation = "";
+			if(operationSet.next()) {
+				operation = operationSet.getString("OperationKey");
+			}
+			
+			switch(operation) {
+				case "testOperation":{
+					response = testOperation(args);
+					break;
+				}
+				
+				case "GAME.getDialogResult":{
+					response = GAME_getDialogResult(args);
+					break;
+				}
+				
+				case "GAME.setDialogResult":{
+					response = GAME_setDialogResult(args);
+					break;
+				}
+				case "Resources\\Nana\\oops.nobigdeal.com.ua.html":{
+					response = ReturnPage(operation);
+					break;
+				}
+				
+				
+				default:{
+					response = defaultOption(args);
+				}
+			}
 		}
 		
-		switch(operation) {
-			case "testOperation":{
-				response = testOperation(args);
-				break;
-			}
-			
-			case "GAME.getDialogResult":{
-				response = GAME_getDialogResult(args);
-				break;
-			}
-			
-			case "GAME.setDialogResult":{
-				response = GAME_setDialogResult(args);
-				break;
-			}
-			case "Resources\\Nana\\oops.nobigdeal.com.ua.html":{
-				response = MainDomainPage(operation);
-				break;
-			}
-			
-			
-			default:{
-				response = defaultOption(args);
-			}
-		}
+		
+		
+		
 		
 		return response;
 	}
@@ -166,13 +179,12 @@ public class HTTPMessageProcessor {
 		return response;
 	}
 	
-	public static String MainDomainPage(String path) {
+	public static String ReturnPage(String path) {
 		
 		StringBuilder builder = new StringBuilder();
 		builder.append("");
-		try(BufferedReader reader = new BufferedReader(new FileReader(new File("D://Eclipse Workspaces//HomeCloud//HomeCloud//Resources//Nana//oops.nobigdeal.com.ua.html")))){
-			
-			System.out.println();
+		try(BufferedReader reader = new BufferedReader(new FileReader(new File(path)))){
+
 			Iterator<String> i = reader.lines().iterator();
 			while(i.hasNext()) {
 				builder.append(i.next());
@@ -185,7 +197,8 @@ public class HTTPMessageProcessor {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println(builder.toString());
+		System.out.println("path");
+		
 		return builder.toString();
 	}
 	
